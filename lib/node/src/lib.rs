@@ -7,170 +7,84 @@ use iroh::endpoint::{SendStream, RecvStream};
 use pkarr::mainline::rpc::messages::Message;
 
 use tokio::time::{sleep, Duration};
-
+use iroh::endpoint::Connection;
 mod events;
 
-pub struct Channel {
-    pub node_addr: String, 
-    pub writer: SendStream,
-    pub reader: RecvStream
+const CHAT_ALPN: &[u8] = b"pkarr-discovery-demo-chat";
+
+
+fn build_discovery() -> iroh::discovery::pkarr::dht::Builder {
+    let builder = iroh::discovery::pkarr::dht::DhtDiscovery::builder().dht(true);
+    builder.n0_dns_pkarr_relay()
 }
 
-
-pub struct Node {
-    pub loader: ConfigLoader,
-    pub secret_key: iroh::SecretKey,
-    pub public_key: iroh::PublicKey,
-    pub endpoint: Arc<Endpoint>,
-    pub channels: Vec<Channel>,
-    pub alpn: String,
-    pub listener: Option<tokio::task::JoinHandle<()>>
-}
-
-impl Node {
-    pub async fn new(config_path:String) -> Self {
-
-        let alpn = "p2psocial/genesis/0.1.0".to_string();
-        let loader = ConfigLoader::new(config_path);
-        
-        println!("Using config {:?}", loader.config.clone());
-        let secret:[u8; 32] = hex::decode(loader.config.secret.clone()).expect("could not decode").as_slice().try_into().unwrap();
-        let secret_key = iroh::SecretKey::from_bytes(&secret);
-        let public_key = secret_key.public();
-        println!("public_key {:?}", public_key);
-
-        let discoverable = loader.config.bootstrap_addr.is_none();
-        let bootstrap_addr = loader.config.bootstrap_addr.clone();
-
-        let mut discovery = iroh::discovery::pkarr::dht::DhtDiscovery::builder().dht(true);        
-        discovery = discovery.n0_dns_pkarr_relay().secret_key(secret_key.clone());
-        
-        let endpoint = Endpoint::builder()
-            .alpns(vec![alpn.as_bytes().to_vec()])
-            .secret_key(secret_key.clone())
-            .discovery(Box::new(discovery.build().unwrap()))
-            .bind()
-            .await.unwrap();
-
-        let endpoint = Arc::new(endpoint);
-        let endpoint_clone1 = endpoint.clone();
-        let endpoint_clone2 = endpoint.clone();
-
-
-        let mut node = Node {
-            loader,
-            secret_key,
-            public_key,
-            endpoint,
-            channels: vec![],
-            alpn: alpn.clone(),
-            listener: None
-        };
-
-        
-
-        if !discoverable {
-            println!("the node {:?} is the client", public_key);
-            tokio::spawn(async move {
-                Node::bootstrap(endpoint_clone2, alpn.clone(), bootstrap_addr).await;
-            });
-        } else {
-            println!("the node {:?} is the host", public_key);
-            let listener = tokio::spawn(async move {
-                Node::listener(endpoint_clone1).await.unwrap();
-            });
+pub async fn chat_client(configloader:ConfigLoader) -> anyhow::Result<()> {
+    let remote_node_id = NodeId::from_str(configloader.config.bootstrap_addr.ok_or("no bootstrap").unwrap().as_str()).unwrap();
     
-            node.listener = Some(listener);
-        }
+    let secret_key = iroh::SecretKey::generate(rand::rngs::OsRng);
+    let node_id = secret_key.public();
+    // note: we don't pass a secret key here, because we don't need to publish our address, don't spam the DHT
+    let discovery = build_discovery().build()?;
+    // we do not need to specify the alpn here, because we are not going to accept connections
+    let endpoint = Endpoint::builder()
+        .secret_key(secret_key)
+        .discovery(Box::new(discovery))
+        .bind()
+        .await?;
+    println!("We are {} and connecting to {}", node_id, remote_node_id);
+    let connection = endpoint.connect(remote_node_id, CHAT_ALPN).await?;
+    println!("connected to {}", remote_node_id);
+    let (mut writer, mut reader) = connection.open_bi().await?;
+    let _copy_to_stdout =
+        tokio::spawn(async move { tokio::io::copy(&mut reader, &mut tokio::io::stdout()).await });
+    let _copy_from_stdin =
+        tokio::spawn(async move { tokio::io::copy(&mut tokio::io::stdin(), &mut writer).await });
+    _copy_to_stdout.await??;
+    _copy_from_stdin.await??;
+    Ok(())
+}
 
-        node
-
-    }
-
-    pub async fn listener(endpoint: Arc<Endpoint>) -> anyhow::Result<()> {
-        println!("Listener created!");
-
-        while let Some(incoming) = endpoint.accept().await {
-            let connecting = match incoming.accept() {
-                Ok(connecting) => connecting,
-                Err(err) => {
-                    println!("[WARN] incoming connection may have failed failed: {err:#}");
-                    continue;
-                }
-            };
-
-            tokio::spawn(async move {
-                let connection = connecting.await.expect("Connection failed?");
-                let remote_node_id = connection.remote_node_id().expect("Could not get remote id");
-
-                
-                println!("connected to {:?} waiting for the channel to be opened", remote_node_id);
-                let (write, read) = connection.accept_bi().await.expect("Could not accept channel");
-                println!("Done waiting for the channel to be opened (SUCCESS!)");
-
-
-            });
-        }
-
-        Ok(())
-
-    }
-
-    pub async fn reader(mut writer:SendStream, mut reader:RecvStream) {
-
-        loop {
-            let buffer = reader.read_to_end(4096).await.expect("failed to read pipe");
-
-            // Deserialize the incoming message dynamically based on its type
-            let incomming_message: events::Message = serde_json::from_slice(&buffer).expect("failed to decode message");
-
-            match incomming_message {
-                events::Message::Ping(req) => {
-                    println!("Got a ping ({:?}) Sending out a pong...", req);
-                    let outgoing_message = serde_json::to_string(&events::Message::Pong(events::Pong{})).unwrap();
-                    writer.write(outgoing_message.as_bytes()).await.expect("Could not send pong!");
-
-                },
-                events::Message::Pong(req) => {
-                    println!("Got a pong {:?}", req);
-                },
-
-            };
-        }
-
-    }
-
-    async fn update_config(&mut self) {
-        self.loader.config.peers = self.channels.iter().map(|x| x.node_addr.clone()).collect();
-        self.loader.dump();
-    }
-
-    pub async fn bootstrap(endpoint:Arc<Endpoint>, alpn: String, bootstrap_addr:Option<String>) {
-        
-        match bootstrap_addr {
-            
-            Some(boot_addr) => {
-                
-                let bootstrap_node:NodeId = NodeId::from_str(boot_addr.as_str()).unwrap();
-                
-                let connection = endpoint.connect(bootstrap_node, alpn.as_bytes()).await.expect("Cannot connect to bootstrap node!");
-                
-                
-                println!("opening the channel");
-                let (mut write, read) = connection.open_bi().await.expect("Could not open a channel with the bootstrap node!");
-                
-                let message = format!("hi! you connected to me. bye bye");
-                write.write_all(message.as_bytes()).await.unwrap();
-
-
-
-            },
-            None => {
-                println!("No bootstrap address provided.")
+async fn chat_server(configloader:ConfigLoader) -> anyhow::Result<()> {
+    let secret_key = iroh::SecretKey::generate(rand::rngs::OsRng);
+    let node_id = secret_key.public();
+    let discovery = build_discovery()
+        .secret_key(secret_key.clone())
+        .build()?;
+    let endpoint = Endpoint::builder()
+        .alpns(vec![CHAT_ALPN.to_vec()])
+        .secret_key(secret_key)
+        .discovery(Box::new(discovery))
+        .bind()
+        .await?;
+    let zid = pkarr::PublicKey::try_from(node_id.as_bytes())?.to_z32();
+    println!("Listening on {}", node_id);
+    println!("pkarr z32: {}", zid);
+    println!("see https://app.pkarr.org/?pk={}", zid);
+    while let Some(incoming) = endpoint.accept().await {
+        let connecting = match incoming.accept() {
+            Ok(connecting) => connecting,
+            Err(err) => {
+                println!("incoming connection failed: {err:#}");
+                // we can carry on in these cases:
+                // this can be caused by retransmitted datagrams
+                continue;
             }
-        }
-
-        println!("end of bootstrap");
+        };
+        tokio::spawn(async move {
+            let connection = connecting.await?;
+            let remote_node_id = connection.remote_node_id()?;
+            println!("got connection from {}", remote_node_id);
+            // just leave the tasks hanging. this is just an example.
+            let (mut writer, mut reader) = connection.accept_bi().await?;
+            let _copy_to_stdout = tokio::spawn(async move {
+                tokio::io::copy(&mut reader, &mut tokio::io::stdout()).await
+            });
+            let _copy_from_stdin =
+                tokio::spawn(
+                    async move { tokio::io::copy(&mut tokio::io::stdin(), &mut writer).await },
+                );
+            anyhow::Ok(())
+        });
     }
-
+    Ok(())
 }

@@ -2636,6 +2636,7 @@ dependencies = [
  "data-encoding",
  "ed25519-dalek",
  "futures-lite",
+ "hex",
  "indicatif",
  "iroh",
  "iroh-base",

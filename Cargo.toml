@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.95"
 bytes = "1.10.0"
-clap = {version="4.5.28", features = ["derive"]}
+clap = { version = "4.5.28", features = ["derive"] }
 data-encoding = "2.7.0"
 ed25519-dalek = "2.1.1"
 futures-lite = "2.6.0"
@@ -31,3 +31,4 @@ url = "2.5.4"
 
 config = {path = "lib/config"}
 node = {path = "lib/node"}
+hex = "0.4.3"
