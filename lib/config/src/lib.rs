@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use std::fs::{File, OpenOptions};
-use std::io;
 use std::path::Path;
 use serde_json;
 use rand;

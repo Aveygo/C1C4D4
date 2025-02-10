@@ -31,4 +31,6 @@ url = "2.5.4"
 
 config = {path = "lib/config"}
 node = {path = "lib/node"}
+event_handler = {path = "lib/event_handler"}
+
 hex = "0.4.3"
