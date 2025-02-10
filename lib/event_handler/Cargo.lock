@@ -837,6 +837,7 @@ dependencies = [
  "axum",
  "eventsys",
  "iroh",
+ "log",
  "once_cell",
  "quinn",
  "rmpv",

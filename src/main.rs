@@ -2,7 +2,8 @@ use std::str::FromStr;
 use clap::Parser;
 use config::ConfigLoader;
 use node;
-
+use env_logger::Builder;
+use log::{self, info};
 
 #[derive(Parser)]
 struct Args {
@@ -11,7 +12,12 @@ struct Args {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt::init();
+    Builder::from_env(env_logger::Env::new().default_filter_or("p2psocial=info,event_handler=info,node=info"))
+        .init();
+
+    info!("start");
+
+    
     let args = Args::parse();
 
     
@@ -22,7 +28,7 @@ async fn main() -> anyhow::Result<()> {
         Some(boot) => {
             let mut node = node::Node::new(configloader).await;
             let public_key = iroh::PublicKey::from_str(&boot).unwrap();            
-            node.exec(node::Command::Ping(node::Ping{destination: public_key})).await;
+            node.push(public_key, event_handler::NetworkEvent::Ping(event_handler::Ping {  })).await;
             node.listen().await;
             
             
