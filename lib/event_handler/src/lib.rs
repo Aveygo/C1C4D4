@@ -1,3 +1,9 @@
+
+pub mod handlers;
+pub mod pipe;
+pub mod connection;
+
+/*
 use serde::{Serialize, Deserialize};
 use std::{thread, time};
 use log::warn;
@@ -9,6 +15,9 @@ pub struct Ping { }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Pong { }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct DataTransfer { }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Heartbeat { }
@@ -36,6 +45,16 @@ pub struct ConnectionLogic {
 	pub pipe:pipe::Pipe<NetworkEvent>
 }
 
+trait Handle {
+    async fn action(self, connection: &mut ConnectionLogic);
+}
+
+impl Handle for Ping {
+	async fn action(self, connection: &mut ConnectionLogic) {
+		connection.pipe.send(NetworkEvent::Pong(Pong{})).await
+	}
+}
+
 impl ConnectionLogic {
     pub fn new(pipe:pipe::Pipe<NetworkEvent>) -> Self {
     	ConnectionLogic{
@@ -43,9 +62,6 @@ impl ConnectionLogic {
     	}
     }
 
-	pub async fn received_ping(&mut self, _ping:Ping) {
-		self.pipe.send(NetworkEvent::Pong(Pong{})).await;
-	}
 
 	pub async fn received_pong(&mut self, _pong:Pong) {
 		self.pipe.send(NetworkEvent::CloseRequest(CloseRequest{})).await;
@@ -73,7 +89,7 @@ impl ConnectionLogic {
 			if let Ok(response) = response {
 
 				match response {
-					NetworkEvent::Ping(ping) => { self.received_ping(ping).await },
+					NetworkEvent::Ping(ping) => { ping.action(self).await },
 					NetworkEvent::Pong(pong) => { self.received_pong(pong).await },
 					NetworkEvent::Heartbeat(heart) => { self.received_heart(heart).await },
 					NetworkEvent::CloseRequest(close) => { self.received_close_request(close).await; return}
@@ -92,3 +108,4 @@ impl ConnectionLogic {
 }
 
 
+ */

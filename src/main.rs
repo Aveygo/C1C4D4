@@ -5,6 +5,8 @@ use node;
 use env_logger::Builder;
 use log::{self, info};
 
+use event_handler::handlers::{NetworkEvent, ping};
+
 #[derive(Parser)]
 struct Args {
     src: String
@@ -28,7 +30,8 @@ async fn main() -> anyhow::Result<()> {
         Some(boot) => {
             let mut node = node::Node::new(configloader).await;
             let public_key = iroh::PublicKey::from_str(&boot).unwrap();            
-            node.push(public_key, event_handler::NetworkEvent::Ping(event_handler::Ping {  })).await;
+            node.push(public_key, NetworkEvent::Ping(ping::Ping {  })).await;
+            
             node.listen().await;
             
             

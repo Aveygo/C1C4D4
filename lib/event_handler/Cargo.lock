@@ -836,6 +836,7 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "eventsys",
+ "futures",
  "iroh",
  "log",
  "once_cell",

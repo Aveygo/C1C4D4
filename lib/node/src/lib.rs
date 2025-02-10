@@ -3,7 +3,7 @@ use iroh::{Endpoint, PublicKey};
 use std::sync::Arc;
 use log::{info, warn};
 
-use event_handler::{ConnectionLogic, NetworkEvent, pipe::Pipe};
+use event_handler::{connection::ConnectionLogic, handlers::NetworkEvent, pipe::Pipe};
 
 const CHAT_ALPN: &[u8] = b"pkarr-discovery-demo-chat";
 
@@ -56,6 +56,7 @@ impl Node {
     pub async fn push_to_thread(&mut self, mut connection:ConnectionLogic) {
         tokio::spawn(async move {
             connection.handle().await;
+            info!("Connection stopped");
         });
     }
 
