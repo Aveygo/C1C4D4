@@ -1,6 +1,5 @@
-use log::warn;
 use crate::handlers::NetworkEvent;
-use crate::pipe::Pipe;
+use crate::pipe::{NetworkEventError, Pipe};
 use crate::handlers::Handle;
 
 pub struct ConnectionLogic {
@@ -12,23 +11,22 @@ impl ConnectionLogic {
         ConnectionLogic { pipe }
     }
 
-    pub async fn handle(&mut self) {
+    pub async fn handle(&mut self) -> Result<(), NetworkEventError> {
         loop {
             let response = self.pipe.receive().await;
-            if let Ok(response) = response {
-                
-                response.action(self).await;
 
-                // Special commands that require stop
-                match response {
-                    NetworkEvent::CloseRequest(_) => {return;},
-                    NetworkEvent::CloseResponse(_) => {return;},
-                    _ => {}
-                }
-                
-            } else {
-                warn!("Pipe encountered error: {:?}", response);
-                return;
+            match response {
+                Ok(response) => {
+                    response.action(self).await;
+
+                    // Special commands that require stop
+                    match response {
+                        NetworkEvent::CloseRequest(_) => {return Ok(());},
+                        NetworkEvent::CloseResponse(_) => {return Ok(());},
+                        _ => {}
+                    }
+                },
+                Err(e) => {return Err(e);}
             }
         }
     }

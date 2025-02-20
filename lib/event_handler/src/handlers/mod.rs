@@ -30,7 +30,7 @@ impl Handle for NetworkEvent {
             NetworkEvent::Pong(pong) => pong.action(connection).await,
             NetworkEvent::Heartbeat(heart) => heart.action(connection).await,
             NetworkEvent::CloseRequest(close) => close.action(connection).await,
-            NetworkEvent::CloseResponse(close) => close.action(connection).await
+            NetworkEvent::CloseResponse(close) => close.action(connection).await,
         }
 
     }

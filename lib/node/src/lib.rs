@@ -1,4 +1,6 @@
-use config::ConfigLoader;
+use config::db::NodeDB;
+use config::db::identity::Identity;
+
 use iroh::{Endpoint, PublicKey};
 use std::sync::Arc;
 use log::{info, warn};
@@ -12,23 +14,40 @@ pub struct Node {
     pub public_key: PublicKey,
 }
 
-pub struct Ping {
-    pub destination: PublicKey,
-}
-
-pub struct Hearbeat {
-    pub destination: PublicKey,
-}
-
-pub enum Command {
-    Ping(Ping),
-    Hearbeat(Hearbeat)
-}
-
 impl Node {
-    pub async fn new(args: ConfigLoader) -> Self {
+    pub async fn new() -> Self {
+        
+        /*
+            TODO, I am feeling sick, so i might leave this project for a sec
+            for future me, I just finished lib/config, and main.rs will be broken, but the logic should be ready to integrate with my custom event_handler
+            I wrote peer.rs before I redesigned the protocol, but it is roughly how it should be structured
 
-        let secret:[u8; 32] = hex::decode(args.config.secret.clone()).expect("could not decode").as_slice().try_into().unwrap();
+            You need to create an arc for NodeDB so it can be passed to each generated pipe
+            From the db, the main functions you need to worry about are in trust_request
+            You also need to write manual logic for the bootstrap node to accept connections without trusting first (otherwise the bootstrap node will reject all new connections because a trust request is not possible to make without receiving a post first)
+            The DB also assumes you manually trust the user and the bootstrap node, so make sure you do that 
+            
+            The protocol should have the messages:
+                - Post
+                - TrustRequest
+                - TrustResponse
+                - TrustBootstrap
+            
+            The user should be able to:
+                - FetchPosts
+                - PromotePost
+                - DemotePost
+
+            You will need to consider the case where you cannot connect to a given peer (demote?)
+            You could also do something where the node does not construct a pipe if the connecting peer scores too low. 
+
+            Anyways, hope you feel better.
+        */
+        let db = NodeDB::new("db").unwrap();
+
+
+        let raw_secret = db.get_identity().unwrap();
+        let secret:[u8; 32] = hex::decode(raw_secret.private_key.clone()).expect("could not decode").as_slice().try_into().unwrap();
         let secret_key = iroh::SecretKey::from_bytes(&secret);
         let public_key = secret_key.public();
 
@@ -55,8 +74,13 @@ impl Node {
 
     pub async fn push_to_thread(&mut self, mut connection:ConnectionLogic) {
         tokio::spawn(async move {
-            connection.handle().await;
-            info!("Connection stopped");
+            let r = connection.handle().await;
+            
+            match r {
+                Ok(_r) => info!("Connection stopped {:?}", connection.pipe.node),
+                Err(e) => warn!("Connection stopped {:?} with error {:?}", connection.pipe.node, e)
+            }
+            
         });
     }
 

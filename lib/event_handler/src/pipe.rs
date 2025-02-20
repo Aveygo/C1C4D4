@@ -70,7 +70,7 @@ where
     
                 match serde_json::from_slice::<T>(complete_data) {
                     Ok(event) => {
-                        info!("[{:?}->HOST] Received {:?}", &self.node.to_string()[..6], event);
+                        info!("[ {} -> HOST ] Received {:?}", &self.node.to_string()[..6], event);
                         return Ok(event);
                     }
                     Err(e) => {
@@ -87,7 +87,7 @@ where
     }
     
     pub async fn send(&mut self, event: T) {
-        info!("[HOST->{:?}] Sending {:?}", &self.node.to_string()[..6], event);
+        info!("[ HOST -> {} ] Sending {:?}", &self.node.to_string()[..6], event);
         let data = serde_json::to_string(&event).unwrap();
         let data = data.as_bytes();
         let data = [&data, "\n".as_bytes()].concat();
