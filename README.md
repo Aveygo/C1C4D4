@@ -5,7 +5,7 @@
 
 > [!WARNING]  
 > C1C4D4 is still in active development, there are no public bootstrap nodes for the time being
-
+> Also the code is very messy so prepare your r/eyebleach before continuing
 
 # Legal
 
@@ -13,11 +13,11 @@ C1C4D4 was developed purely for academic purposes to explore the feasibility of 
 
 ## Pre-rant
 
-Most 'decentralized' platforms like: Mastodon, Lemmy, Bluesky, Matrix, Nostr and a thousand others are actually secretly federated. This is because it solves a lot of problems that p2p systems have, however, they normally accidentally end up being heavily centralized around their main instance. Even blockchain technology is still non-ideal, which requires users to spend money to use their service.
+Most 'decentralized' platforms like: Mastodon, Lemmy, Bluesky, Matrix, Nostr and a thousand others are actually not-very-secretly federated. This is because it solves a lot of problems that p2p systems have, however, they normally accidentally end up being heavily centralized around their main instance. Even blockchain technology is still non-ideal, which requires users to spend money to use their service.
 
-The closest we have is Scuttlebutt, which still relies on self-hosted rooms (although for good reason I would add). Instead, I wanted a **true** decentralized protocol that is imperfect but works. 
+The closest we have is Scuttlebutt, which still relies on self-hosted rooms (although for good reason I would add) which is extremely infuriating as it really is only step away from being a complete solution. Instead, I wanted a **true** decentralized protocol that is imperfect but good enough. 
 
-This is my solution in a bucket of a thousand (a true 927 moment), but I hope that it serves its purpose and grows into something I could be proud of, or to at least inspire a better solution.
+This is my solution in a bucket of a thousand (a true 927 moment), but I hope that it serves its purpose and grows into something I could be proud of, or to at least inspire something better.
 
 # Protocol
 
@@ -28,19 +28,21 @@ This is my solution in a bucket of a thousand (a true 927 moment), but I hope th
 
 TLDR: A friend of my friend is also my friend
 
-By restricting how the users connect to one another, each node becomes a moderator for their peers. Unfortunately this does mean that everyone has a role to play in managing the worst of humanity, but by building the network and only connecting to trusted peers, this issue can be mitigated. 
+By restricting how the users connect to one another, each node becomes a moderator for their peers. Unfortunately this does mean that everyone has a role to play in managing the worst of humanity, but by building the network and only connecting to trusted peers, this issue is at least partially solved the more the network matures. 
 
-# The main issue
+# The Elephant in the Room
 
 To deal with NAT traversal, this project uses Iroh's [public relays](https://www.iroh.computer/docs/concepts/relay).
 
 This is the weakest link in the chain, and means a couple of things:
-1. They have the ability to reject nodes from joining the network
+1. They theoretically have the ability to reject nodes from joining the network
 2. If the relays go down, then no one can make any **new** connections with unknown peers
 
-Currently, if Iroh misbehaves, people still have the option to host their own relays to participate in the network, but it's not an ideal situation to be in. Maybe the solution lies in tor? 🤔 
+Currently, if Iroh misbehaves, people still have the option to host their own relays to participate in the network, which is why I still consider C1C4D4 to be fully decentralized. 
 
-Only for this reason do I still consider C1C4D4 to be fully decentralized; C1C4D4 was always going to be an imperfect solution, but a solution nonetheless.
+C1C4D4 was always going to be an imperfect solution, but a solution nonetheless. Maybe the solution lies in tor? 🤔 😉
+
+
 
 # What is guaranteed
 
