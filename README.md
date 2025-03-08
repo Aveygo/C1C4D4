@@ -5,6 +5,7 @@
 
 > [!WARNING]  
 > C1C4D4 is still in active development, there are no public bootstrap nodes for the time being
+>
 > Also the code is very messy so prepare your r/eyebleach before continuing
 
 # Legal
@@ -38,7 +39,7 @@ This is the weakest link in the chain, and means a couple of things:
 1. They theoretically have the ability to reject nodes from joining the network
 2. If the relays go down, then no one can make any **new** connections with unknown peers
 
-Currently, if Iroh misbehaves, people still have the option to host their own relays to participate in the network, which is why I still consider C1C4D4 to be fully decentralized. 
+Currently if Iroh misbehaves, the network will still be (mostly) functional and the relays can be self-hosted in a pinch, which is why I still consider C1C4D4 to be fully decentralized. 
 
 C1C4D4 was always going to be an imperfect solution, but a solution nonetheless. Maybe the solution lies in tor? 🤔 😉
 
