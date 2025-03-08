@@ -3,6 +3,10 @@
     <img src="media/c1c4d4.png" width=512px>
 </p>
 
+> [!WARNING]  
+> C1C4D4 is still in active development, there are no public bootstrap nodes for the time being
+
+
 # Legal
 
 C1C4D4 was developed purely for academic purposes to explore the feasibility of an experimental protocol. **C1C4D4 is not a service, nor does it provide one.** That being said, each user is expected to comply with the laws within their respective jurisdictions.
