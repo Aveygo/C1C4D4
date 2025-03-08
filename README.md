@@ -41,7 +41,7 @@ This is the weakest link in the chain, and means a couple of things:
 
 Currently if Iroh misbehaves, the network will still be (mostly) functional and the relays can be self-hosted in a pinch, which is why I still consider C1C4D4 to be fully decentralized. 
 
-C1C4D4 was always going to be an imperfect solution, but a solution nonetheless. Maybe the solution lies in tor? 🤔 😉
+C1C4D4 was always going to be an imperfect solution, but a solution nonetheless. Maybe a relay-less fix lies in tor? 🤔 😉
 
 
 
