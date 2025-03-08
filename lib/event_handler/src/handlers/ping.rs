@@ -1,3 +1,4 @@
+use config::db::identity::Identity;
 use serde::{Serialize, Deserialize};
 
 use crate::handlers::{Handle, NetworkEvent, pong::Pong};

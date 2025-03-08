@@ -466,6 +466,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "c1c4d4"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "clap",
+ "config",
+ "data-encoding",
+ "ed25519-dalek",
+ "env_logger",
+ "event_handler",
+ "futures-lite",
+ "hex",
+ "indicatif",
+ "iroh",
+ "iroh-base",
+ "iroh-gossip",
+ "log",
+ "n0-future",
+ "node",
+ "parse-size",
+ "pkarr",
+ "postcard",
+ "rand 0.8.5",
+ "rand_core 0.9.0",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+]
+
+[[package]]
 name = "cc"
 version = "1.2.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -609,6 +644,7 @@ dependencies = [
  "ed25519",
  "hex",
  "iroh",
+ "log",
  "rand 0.9.0",
  "serde",
  "serde_json",
@@ -1153,6 +1189,7 @@ name = "event_handler"
 version = "0.1.0"
 dependencies = [
  "axum 0.8.1",
+ "config",
  "eventsys",
  "futures",
  "iroh",
@@ -2874,41 +2911,6 @@ name = "overload"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b15813163c1d831bf4a13c3610c05c0d03b39feb07f7e09fa234dac9b15aaf39"
-
-[[package]]
-name = "p2psocial"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytes",
- "clap",
- "config",
- "data-encoding",
- "ed25519-dalek",
- "env_logger",
- "event_handler",
- "futures-lite",
- "hex",
- "indicatif",
- "iroh",
- "iroh-base",
- "iroh-gossip",
- "log",
- "n0-future",
- "node",
- "parse-size",
- "pkarr",
- "postcard",
- "rand 0.8.5",
- "rand_core 0.9.0",
- "serde",
- "serde_json",
- "sha2",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "url",
-]
 
 [[package]]
 name = "parking"

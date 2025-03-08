@@ -4,12 +4,19 @@ use iroh::{endpoint::{Connection, RecvStream, SendStream, VarInt}, PublicKey};
 use tokio::io;
 use serde::{Deserialize, Serialize};
 use log::{info, error};
+use config::db::NodeDB;
+use std::sync::Arc;
+use std::sync::mpsc::Sender;
+use crate::handlers::NetworkEvent;
+
 
 pub struct Pipe<T> {
     pub send: SendStream,
     pub recv: RecvStream,
-    pub node: PublicKey,
+    pub public: PublicKey,
     pub connection: Connection,
+    pub db: Arc<NodeDB>,
+    pub pusher: Sender<(PublicKey, NetworkEvent)>,
     _marker: std::marker::PhantomData<T>,
 }
 
@@ -35,18 +42,26 @@ impl<T> Pipe<T>
 where
     T: for<'de> Deserialize<'de> + Serialize + std::fmt::Debug,
 {
-    pub fn new(send: SendStream, recv: RecvStream, node: PublicKey, connection: Connection) -> Self {
+    pub fn new(send: SendStream, recv: RecvStream, public: PublicKey, connection: Connection, db: Arc<NodeDB>, pusher:Sender<(PublicKey, NetworkEvent)>) -> Self {
         Pipe {
             send,
             recv,
-            node,
+            public,
             connection,
+            db,
+            pusher,
             _marker: std::marker::PhantomData,
         }
     }
 
     
     pub async fn receive(&mut self) -> Result<T, NetworkEventError> {
+        /* 
+            NEED TO FIX: the buffer stops reading at the first new line, 
+            as it assumes that it's reading json data 
+            However, if it's binary data, then there is a high chance that
+            it will randomly stop reading and return incomplete data    
+        */
         let mut buffer = vec![0u8; 4096];
         let mut reader = BufReader::new(&mut self.recv);
         let mut accumulated_data = Vec::new();
@@ -70,11 +85,11 @@ where
     
                 match serde_json::from_slice::<T>(complete_data) {
                     Ok(event) => {
-                        info!("[ {} -> HOST ] Received {:?}", &self.node.to_string()[..6], event);
+                        info!("[ {} -> HOST ] Received {:?}", &self.public.to_string()[..6], event);
                         return Ok(event);
                     }
                     Err(e) => {
-                        error!("Failed to deserialize JSON from {:?} due to {:?}", self.node, e);
+                        error!("Failed to deserialize JSON from {:?} due to {:?}", self.public, e);
                         error!("Raw received data: {:?}", debug_bytes(complete_data));
                     }
                 }
@@ -87,7 +102,7 @@ where
     }
     
     pub async fn send(&mut self, event: T) {
-        info!("[ HOST -> {} ] Sending {:?}", &self.node.to_string()[..6], event);
+        info!("[ HOST -> {} ] Sending {:?}", &self.public.to_string()[..6], event);
         let data = serde_json::to_string(&event).unwrap();
         let data = data.as_bytes();
         let data = [&data, "\n".as_bytes()].concat();

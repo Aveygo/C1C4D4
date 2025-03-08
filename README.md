@@ -1,25 +1,23 @@
 
 <p align=center>
-    <img src="media/logo.svg" width=200px>
+    <img src="media/c1c4d4.png" width=512px>
 </p>
 
 # Legal
 
-C1C4D4 was developed purely for academic purposes to explore the feasibility of an experimental protocol. **C1C4D4 is not a service, nor does it provide one.**
-
-Each user is expected to comply with any legal requests in their respective jurisdictions to remove harmful, illegal, or deceptive posts.
+C1C4D4 was developed purely for academic purposes to explore the feasibility of an experimental protocol. **C1C4D4 is not a service, nor does it provide one.** That being said, each user is expected to comply with the laws within their respective jurisdictions.
 
 ## Pre-rant
 
-Most 'decentralised' platforms like: Mastodon, Lemmy, Bluesky, Matrix, Nostr and a thousand others are actually secretly federated. This is because it solves a lot of problems that p2p systems have, however, they normally accidentally end up being heavily centralised around their main instance. Even blockchain technology is still non-ideal, which requires users to spend money to use their service.
+Most 'decentralized' platforms like: Mastodon, Lemmy, Bluesky, Matrix, Nostr and a thousand others are actually secretly federated. This is because it solves a lot of problems that p2p systems have, however, they normally accidentally end up being heavily centralized around their main instance. Even blockchain technology is still non-ideal, which requires users to spend money to use their service.
 
-The closest we have is Scuttlebutt, which still relies on self hosted rooms (although for good reason I would add). Instead, I wanted a **true** decentralised protocol that is imperfect but works. 
+The closest we have is Scuttlebutt, which still relies on self-hosted rooms (although for good reason I would add). Instead, I wanted a **true** decentralized protocol that is imperfect but works. 
 
-This is my solution in a bucket of a thousand (a true 927 moment), but I hope that it serves it's purpose and grows into something I could be proud of, or to at least inspire a better solution.
+This is my solution in a bucket of a thousand (a true 927 moment), but I hope that it serves its purpose and grows into something I could be proud of, or to at least inspire a better solution.
 
 # Protocol
 
-1. Alice will receive a post from Bob via an bootstrap node.
+1. Alice will receive a post from Bob via a bootstrap node.
 2. If Alice believes that Bob is an acceptable peer, she will send a 'trust' request.
 3. Bob accepts the request if Alice is similarly acceptable. 
 4. The process repeats where Alice eventually finds her closest peers, and the bootstrap nodes are no longer needed.
@@ -32,13 +30,13 @@ By restricting how the users connect to one another, each node becomes a moderat
 
 To deal with NAT traversal, this project uses Iroh's [public relays](https://www.iroh.computer/docs/concepts/relay).
 
-This is the weakest link in the chain, and means a couple things:
+This is the weakest link in the chain, and means a couple of things:
 1. They have the ability to reject nodes from joining the network
 2. If the relays go down, then no one can make any **new** connections with unknown peers
 
 Currently, if Iroh misbehaves, people still have the option to host their own relays to participate in the network, but it's not an ideal situation to be in. Maybe the solution lies in tor? 🤔 
 
-Only for this reason do I still consider C1C4D4 to be fully decentralised; C1C4D4 was always going to be an imperfect solution, but a solution nonetheless.
+Only for this reason do I still consider C1C4D4 to be fully decentralized; C1C4D4 was always going to be an imperfect solution, but a solution nonetheless.
 
 # What is guaranteed
 
@@ -46,13 +44,19 @@ Only for this reason do I still consider C1C4D4 to be fully decentralised; C1C4D
 
 2. Extreme resilience; if there is even at least one copy of a post on the network, it can be replicated to everyone in seconds
 
-3. End to end encryption to your trusted peers
+3. End-to-end encryption to your trusted peers
 
 4. No large easy targets for hackers or foreign governments to manipulate or take down.
 
 5. Scalability - reach an audience of your 10 friends, or to thousands of viewers.
 
+# Legal
 
+It's a strange experience having to deal with ethical challenges while trying to make a performant peer to peer protocol, and that's why I wanted to spend a moment to explain my situation and how I'm (trying to) approach it.
+
+The core issue is that most countries consider social media sites under the jurisdiction of their laws, so what happens if the people are the social media? I think this problem is too much of a 'we live a society' type moment for my programming brain to handle, and because existing laws don't really consider it, it feels like making an individual decision would be too 'immature' for the impact it can have.
+
+That's why for the time being, I would rather have this problem solved 'together' when it becomes a real issue in the first place, rather than as a theoretical (yet still entertaining) scenario.
 
 
 

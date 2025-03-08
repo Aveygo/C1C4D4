@@ -6,6 +6,8 @@ pub mod pong;
 pub mod close_request;
 pub mod close_response;
 pub mod heartbeat;
+pub mod peer;
+
 
 pub trait Handle {
     #![allow(async_fn_in_trait)]
@@ -17,6 +19,7 @@ pub trait Handle {
 pub enum NetworkEvent {
     Ping(ping::Ping),
     Pong(pong::Pong),
+    Post(peer::Post),
     Heartbeat(heartbeat::Heartbeat),
     CloseRequest(close_request::CloseRequest),
     CloseResponse(close_response::CloseResponse),
@@ -28,6 +31,7 @@ impl Handle for NetworkEvent {
         match self {
             NetworkEvent::Ping(ping) => ping.action(connection).await,
             NetworkEvent::Pong(pong) => pong.action(connection).await,
+            NetworkEvent::Post(post) => post.action(connection).await,
             NetworkEvent::Heartbeat(heart) => heart.action(connection).await,
             NetworkEvent::CloseRequest(close) => close.action(connection).await,
             NetworkEvent::CloseResponse(close) => close.action(connection).await,

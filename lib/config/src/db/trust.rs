@@ -69,7 +69,7 @@ impl Trust for NodeDB {
 
 #[test]
 fn basic_trust_management() -> Result<(), Box<dyn std::error::Error>> {
-    let db = NodeDB::new(tempfile::TempDir::new()?)?;
+    let db = NodeDB::new(tempfile::TempDir::new()?, None)?;
     let node1 = Node::new([0u8; 32]);
     let node2 = Node::new([1u8; 32]);
     let node3 = Node::new([2u8; 32]);
@@ -88,7 +88,7 @@ fn basic_trust_management() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn trust_fetching() -> Result<(), Box<dyn std::error::Error>> {
-    let db = NodeDB::new(tempfile::TempDir::new()?)?;
+    let db = NodeDB::new(tempfile::TempDir::new()?, None)?;
     let node1 = Node::new([0u8; 32]);
 
     assert_eq!(db.get_trusted()?.len(), 0);

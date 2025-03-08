@@ -101,13 +101,13 @@ impl HandleBlessing for NodeDB {
 fn test_trust_request() -> Result<(), Box<dyn std::error::Error>> {
     use crate::db::RawPost;
 
-    let db1 = NodeDB::new(tempfile::TempDir::new()?)?;
+    let db1 = NodeDB::new(tempfile::TempDir::new()?, None)?;
     let node1 = db1.get_identity()?;
 
-    let db2 = NodeDB::new(tempfile::TempDir::new()?)?;
+    let db2 = NodeDB::new(tempfile::TempDir::new()?, None)?;
     let node2 = db2.get_identity()?;
 
-    let db3 = NodeDB::new(tempfile::TempDir::new()?)?;
+    let db3 = NodeDB::new(tempfile::TempDir::new()?, None)?;
     let node3 = db3.get_identity()?;
 
     // This test will try and get node1 to trust node3 via a trust request.
@@ -115,7 +115,7 @@ fn test_trust_request() -> Result<(), Box<dyn std::error::Error>> {
     db2.trust(&node3.node)?;
 
     // Source post to build history upon
-    let raw_post = RawPost{author: node1.node.clone(), content:"".to_string()};
+    let raw_post = RawPost::new(node1.node.clone(), "".to_string());
     let signature = node1.sign(&raw_post.get_id().raw.to_vec());
     let post = IncomingPost::new(
         &raw_post, 

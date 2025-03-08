@@ -2,8 +2,9 @@ use std::str::FromStr;
 use sled::Db;
 use serde::{Serialize, Deserialize};
 use crate::misc::{get_epoch, sha256};
+use rand::Rng;
 
-trait Hashable: Serialize {
+pub trait Hashable: Serialize {
     fn hash(&self) -> [u8; 32] {
         let serialized = bincode::serialize(self).unwrap();
         sha256(serialized)
@@ -12,12 +13,12 @@ trait Hashable: Serialize {
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-struct Node {
-    public_key: [u8; 32],
+pub struct Node {
+    pub public_key: [u8; 32],
 }
 
 impl Node {
-    fn new(public_key: [u8; 32]) -> Self {
+    pub fn new(public_key: [u8; 32]) -> Self {
         Self {
             public_key: public_key,
         }
@@ -32,7 +33,7 @@ impl Node {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Us {
-    node: Node,
+    pub node: Node,
     pub private_key: [u8; 32]
 }
 
@@ -46,7 +47,7 @@ impl Us {
 
     }
 
-    fn sign(&self, content: &[u8]) -> String {
+    pub fn sign(&self, content: &[u8]) -> String {
         let secret_key = iroh::SecretKey::from_bytes(&self.private_key);
         let signature = secret_key.sign(content);
         return signature.to_string();
@@ -54,30 +55,42 @@ impl Us {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-struct RawPost {
-    author: Node,
-    content: String,
+pub struct RawPost {
+    pub author: Node,
+    pub content: String,
+    pub message_id: u128,
 }
 
 impl RawPost {
-    fn get_id(&self) -> PostId {
+    pub fn new(author: Node, content: String) -> Self {
+
+        let message_id:u128 = rand::rng().random();
+        Self {
+            author,
+            content,
+            message_id
+        }
+
+    }
+
+    pub fn get_id(&self) -> PostId {
         PostId { raw: self.hash() }
     }
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-struct Path {
-    from: Node,
-    to: Node,
-    signature: String, // sign(post + from + to, from private key)
+pub struct Path {
+    pub from: Node,
+    pub to: Node,
+    pub signature: String, // sign(post + from + to, from private key)
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-struct IncomingPost {
-    post: RawPost,
-    history: Vec<Path>,
-    received: u64,
-    signature: String // sign(post.hash(), author private key)
+pub struct IncomingPost {
+    pub post: RawPost,
+    pub history: Vec<Path>,
+    pub received: u64,
+    pub signature: String // sign(post.hash(), author private key)
 }
 
 
@@ -86,7 +99,9 @@ impl Hashable for IncomingPost {}
 
 impl IncomingPost {
 
-    fn new(post:&RawPost, history: &Vec<Path>, signature:&String, us: &Us) -> Result<Self, Box<dyn std::error::Error>> {
+    // Need to have a method that allows us to create a post to send to the network
+
+    pub fn new(post:&RawPost, history: &Vec<Path>, signature:&String, us: &Us) -> Result<Self, Box<dyn std::error::Error>> {
         IncomingPost::verify_history(&history, &post, &us)?;
         IncomingPost::verify_signature(&post, signature)?;
 
@@ -133,10 +148,10 @@ impl IncomingPost {
 
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-struct OutgoingPost {
-    post: RawPost,
-    history: Vec<Path>, // modified to include us, but only two degrees
-    signature: String // sign(post.hash(), author private key)
+pub struct OutgoingPost {
+    pub post: RawPost,
+    pub history: Vec<Path>, // modified to include us, but only two degrees
+    pub signature: String // sign(post.hash(), author private key)
 }
 
 fn construct_path_msg(post: &PostId, from: &Node, to:&Node) -> [u8; 32] {
@@ -169,7 +184,7 @@ impl OutgoingPost {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-struct PostId {
+pub struct PostId {
     raw: [u8; 32]
 }
 
@@ -186,14 +201,17 @@ struct TrustRequest {
 impl Hashable for RawPost {}
 
 pub struct NodeDB {
-    db: Db,
+    pub db: Db,
+    pub bootstrap_nodes: Option<Vec<Node>>
 }
 
 impl NodeDB {
-    pub fn new<P: AsRef<std::path::Path>>(path: P) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn new<P: AsRef<std::path::Path>>(path: P, bootstrap_nodes:Option<Vec<Node>>) -> Result<Self, Box<dyn std::error::Error>> {
         let db = sled::open(path)?;
+        
         Ok(Self {
-            db: db
+            db: db,
+            bootstrap_nodes: bootstrap_nodes
         })
     }
 }

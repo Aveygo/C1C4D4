@@ -124,7 +124,7 @@ impl Score for NodeDB {
 
 #[test]
 fn basic_scoring() -> Result<(), Box<dyn std::error::Error>> {
-    let db = NodeDB::new(tempfile::TempDir::new()?)?;
+    let db = NodeDB::new(tempfile::TempDir::new()?, None)?;
     let node = Node::new([0u8; 32]);
     assert_eq!(db.get_score(&node, 1200)?, 1200);
     db.set_score(&node, 1000)?;
@@ -135,11 +135,11 @@ fn basic_scoring() -> Result<(), Box<dyn std::error::Error>> {
 #[test]
 fn promote_test() -> Result<(), Box<dyn std::error::Error>> {
     use crate::db::RawPost;
-    let db = NodeDB::new(tempfile::TempDir::new()?)?;
+    let db = NodeDB::new(tempfile::TempDir::new()?, None)?;
     let us = db.get_identity()?;
     let author = db.generate_identity()?;
 
-    let raw_post = RawPost{author: author.node.clone(), content:"".to_string()};
+    let raw_post = RawPost::new(author.node.clone(), "".to_string());
     let signature = author.sign(&raw_post.get_id().raw.to_vec());
     let post = IncomingPost::new(
         &raw_post, 
